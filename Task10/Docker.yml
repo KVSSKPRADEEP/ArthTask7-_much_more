@@ -1,0 +1,36 @@
+- hosts: RProxy
+  tasks:
+   - name: Editing the new docker repo
+     yum_repository:
+      name: docker 
+      description: setting repo for docker-ce
+      baseurl: https://download.docker.com/linux/centos/7/x86_64/stable/
+      gpgcheck: no
+      
+   - name: Installing Docker
+     command: "yum install docker-ce --nobest -y"
+   - name: Starting Docker Service
+     service:
+       name: docker   
+       state: started
+   - name: Installing python Latest Version 
+     package:
+       name: python3
+   - name: Installing WebServer on top of the Docker
+     docker_image:	
+       name: httpd
+       state: present
+   - name: Docker container is running in background you cna get into anytime
+     docker_container:      
+      detach: yes
+      name: httpd_docker   
+      ports: "8080:80" 
+      volumes:
+          - "/var/www/html/:/usr/local/apache2/htdocs/:ro"
+      image: httpd
+   - name: disabling firewall to access server from other host
+     command: systemctl stop firewalld
+   - name: check container status
+     command: docker ps
+     register: res
+   - debug: var=res.stdout
